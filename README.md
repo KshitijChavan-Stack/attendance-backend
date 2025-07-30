@@ -2,7 +2,7 @@
 
 This is the backend for an employee attendance management system that allows employees to log entry and exit times and provides monthly analytics. It includes role-based login (Employee/Manager) and connects to a PostgreSQL database.
 
-## 🚀 Tech Stack
+## Tech Stack
 - **Language**: C#
 - **Framework**: ASP.NET Core Web API (.NET 8)
 - **Database**: PostgreSQL
@@ -11,9 +11,9 @@ This is the backend for an employee attendance management system that allows emp
 
 ---
 
-## 📦 API Features Implemented
+## API Features Implemented
 
-### ✅ User & Manager Authentication
+### User & Manager Authentication
 - **Login API**
   - Manager and Employee login with separate logic.
   - Manager credentials are stored in the `Manager` table.
@@ -26,7 +26,7 @@ This is the backend for an employee attendance management system that allows emp
 
 ---
 
-### ✅ Attendance Tracking
+### Attendance Tracking
 - **Mark Entry API**
   - Records the user's entry time.
   - Prevents duplicate entries without an exit.
@@ -38,7 +38,7 @@ This is the backend for an employee attendance management system that allows emp
 
 ---
 
-### ✅ Analytics & Reports
+### Analytics & Reports
 - **Get All Records (Manager View)**
   - Manager can view attendance of all users & as wll as himself.
 -**Get specific employee/managers data
@@ -61,7 +61,7 @@ This is the backend for an employee attendance management system that allows emp
 
 ---
 
-## 🔄 Changes & Improvements
+## Changes & Improvements
 - Switched from `EmployeeName` to `UserId` for accurate identification.
 - Used `DateTime.Now` to capture entry/exit times.
 - Handled duplicate entry/exit cases gracefully.
