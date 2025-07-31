@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AttendanceAPI.Controllers
 {
+    [Route("/")]
     [Route("api/[controller]")]
     [ApiController]
     public class AttendanceController : ControllerBase
