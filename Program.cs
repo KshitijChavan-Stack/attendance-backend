@@ -30,6 +30,12 @@ else
 
 
 var app = builder.Build();
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AttendanceDbContext>();
+    db.Database.Migrate(); // This creates DB tables from your models
+}
+
 app.UseRouting();
 app.UseEndpoints(endpoints =>
 {
