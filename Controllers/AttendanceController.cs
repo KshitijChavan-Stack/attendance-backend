@@ -52,14 +52,14 @@ namespace AttendanceAPI.Controllers
                 duration = duration.ToString(@"hh\:mm\:ss")
             });
         }
-
+        //Get All Users Attendance Records
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             var records = await _context.Attendances.ToListAsync();
             return Ok(records);
         }
-
+        //Get By user ID
         [HttpGet("{userID}")]
         public async Task<IActionResult> GetByEmployee(int userID)
         {
