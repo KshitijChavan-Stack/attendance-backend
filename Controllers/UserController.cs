@@ -37,15 +37,28 @@ namespace AttendanceAPI.Controllers
                 _context.Managers.Add(manager);
                 await _context.SaveChangesAsync();
 
-                return Ok(new { message = "Manager registered", data = manager });
+                return Ok(new
+                {
+                    message = "Manager registered",
+                    data = new
+                    {
+                        manager.Id,
+                        manager.Name,
+                        manager.Email
+                    }
+                });
             }
             else if (request.Role.ToLower() == "employee")
             {
+                if (!request.UserId.HasValue)
+                    return BadRequest("UserId is required for employee registration.");
+
                 if (await _context.Users.AnyAsync(u => u.Email == request.Email))
                     return Conflict("User with this email already exists.");
 
                 var user = new user
                 {
+                    UserId = request.UserId.Value,
                     Name = request.Name,
                     Email = request.Email,
                     Password = request.Password
@@ -54,7 +67,16 @@ namespace AttendanceAPI.Controllers
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
 
-                return Ok(new { message = "Employee registered", data = user });
+                return Ok(new
+                {
+                    message = "Employee registered",
+                    data = new
+                    {
+                        user.UserId,
+                        user.Name,
+                        user.Email
+                    }
+                });
             }
             else
             {
