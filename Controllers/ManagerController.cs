@@ -1,6 +1,5 @@
 ﻿using AttendanceAPI.Data;
 using AttendanceAPI.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,18 +23,18 @@ namespace AttendanceAPI.Controllers
             return await _context.Managers.ToListAsync();
         }
 
-        // GET: api/manager/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Manager>> GetManager(int id)
+        // GET: api/manager/email@example.com
+        [HttpGet("{email}")]
+        public async Task<ActionResult<Manager>> GetManagerByEmail(string email)
         {
-            var manager = await _context.Managers.FindAsync(id);
+            var manager = await _context.Managers.FirstOrDefaultAsync(m => m.Email == email);
 
             if (manager == null)
             {
                 return NotFound("Manager not found.");
             }
 
-            return manager;
+            return Ok(manager);
         }
     }
 }

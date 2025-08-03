@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AttendanceAPI.Migrations
 {
     [DbContext(typeof(AttendanceDbContext))]
-    [Migration("20250803065213_SyncRenderDb")]
-    partial class SyncRenderDb
+    [Migration("20250803180843_FixAttendanceKey")]
+    partial class FixAttendanceKey
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -27,11 +27,15 @@ namespace AttendanceAPI.Migrations
 
             modelBuilder.Entity("AttendanceAPI.Models.Attendance", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("AttendanceId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("AttendanceId"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("EmployeeName")
                         .IsRequired()
@@ -43,10 +47,11 @@ namespace AttendanceAPI.Migrations
                     b.Property<DateTime?>("ExitTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.HasKey("Id");
+                    b.HasKey("AttendanceId");
 
                     b.ToTable("Attendances");
                 });
@@ -95,9 +100,6 @@ namespace AttendanceAPI.Migrations
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 

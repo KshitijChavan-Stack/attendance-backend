@@ -1,12 +1,10 @@
 ﻿using AttendanceAPI.Models;
 using AttendanceAPI.Data;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace AttendanceAPI.Controllers
 {
-   
     [Route("api/[controller]")]
     [ApiController]
     public class UserController : ControllerBase
@@ -40,25 +38,16 @@ namespace AttendanceAPI.Controllers
                 return Ok(new
                 {
                     message = "Manager registered",
-                    data = new
-                    {
-                        manager.Id,
-                        manager.Name,
-                        manager.Email
-                    }
+                    data = new { manager.Name, manager.Email }
                 });
             }
             else if (request.Role.ToLower() == "employee")
             {
-                if (!request.UserId.HasValue)
-                    return BadRequest("UserId is required for employee registration.");
-
                 if (await _context.Users.AnyAsync(u => u.Email == request.Email))
                     return Conflict("User with this email already exists.");
 
                 var user = new user
                 {
-                    UserId = request.UserId.Value,
                     Name = request.Name,
                     Email = request.Email,
                     Password = request.Password
@@ -70,12 +59,7 @@ namespace AttendanceAPI.Controllers
                 return Ok(new
                 {
                     message = "Employee registered",
-                    data = new
-                    {
-                        user.UserId,
-                        user.Name,
-                        user.Email
-                    }
+                    data = new { user.Name, user.Email }
                 });
             }
             else
@@ -84,8 +68,7 @@ namespace AttendanceAPI.Controllers
             }
         }
 
-
-        // Get all user details
+        // Get all users
         [HttpGet]
         public async Task<IActionResult> GetAllUsers()
         {
@@ -93,22 +76,21 @@ namespace AttendanceAPI.Controllers
             return Ok(users);
         }
 
-        // Get user by Id
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetUserById(int id)
+        // Get user by email (since ID is being removed)
+        [HttpGet("email/{email}")]
+        public async Task<IActionResult> GetUserByEmail(string email)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
             if (user == null)
                 return NotFound("User not found.");
 
             return Ok(user);
         }
 
-        // User Authentication (Login)
+        // Login (email + password only)
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] user login)
         {
-            // Check for manager login from DB
             var manager = await _context.Managers.FirstOrDefaultAsync(m => m.Email == login.Email);
 
             if (manager != null && manager.Password == login.Password)
@@ -117,11 +99,10 @@ namespace AttendanceAPI.Controllers
                 {
                     message = "Manager login successful",
                     isManager = true,
-                    user = new { manager.Id, manager.Name, manager.Email }
+                    user = new { manager.Name, manager.Email }
                 });
             }
 
-            // Check for regular user
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == login.Email);
 
             if (user == null || user.Password != login.Password)
@@ -133,9 +114,8 @@ namespace AttendanceAPI.Controllers
             {
                 message = "Login successful",
                 isManager = false,
-                user = new { user.Id, user.Name, user.Email }
+                user = new { user.Name, user.Email }
             });
         }
-
     }
 }

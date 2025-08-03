@@ -2,9 +2,10 @@
 {
     public class Manager
     {
-        public int Id { get; set; }          // Primary Key
-        public string Name { get; set; }     // Manager’s Full Name
-        public string Email { get; set; }    // Login Email
-        public string Password { get; set; } 
+        public int Id { get; set; } // Keep as int identity
+        public string Name { get; set; }
+        public string Email { get; set; }
+        public string Password { get; set; }
     }
+
 }
