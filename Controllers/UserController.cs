@@ -80,7 +80,11 @@ namespace AttendanceAPI.Controllers
         [HttpGet("email/{email}")]
         public async Task<IActionResult> GetUserByEmail(string email)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            var trimmedEmail = email.Trim().ToLower();
+
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email.ToLower() == trimmedEmail);
+
             if (user == null)
                 return NotFound("User not found.");
 
