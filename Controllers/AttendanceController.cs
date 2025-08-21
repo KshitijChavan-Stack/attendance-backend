@@ -16,24 +16,47 @@ namespace AttendanceAPI.Controllers
             _context = context;
         }
 
+        // Helper method to validate user credentials (checks both Users and Managers tables)
+        private async Task<(bool isValid, string userType, string name)> ValidateUserCredentials(string email, string password)
+        {
+            // Check if user exists in Users table
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email && u.Password == password);
+            if (user != null)
+                return (true, "employee", user.Name);
+
+            // Check if user exists in Managers table
+            var manager = await _context.Managers.FirstOrDefaultAsync(m => m.Email == email && m.Password == password);
+            if (manager != null)
+                return (true, "manager", manager.Name);
+
+            return (false, null, null);
+        }
+
         [HttpPost("entry")]
         public async Task<IActionResult> MarkEntry([FromBody] Attendance model)
         {
             if (string.IsNullOrEmpty(model.Email) || string.IsNullOrEmpty(model.Password))
                 return BadRequest("Email and Password are required.");
 
-            // Optional: Validate user exists
-            var userExists = await _context.Users.AnyAsync(u => u.Email == model.Email && u.Password == model.Password);
-            if (!userExists)
+            // Validate credentials against both Users and Managers tables
+            var (isValid, userType, userName) = await ValidateUserCredentials(model.Email, model.Password);
+            if (!isValid)
                 return Unauthorized("Invalid credentials.");
 
+            // Set the employee name based on the validated user
+            model.EmployeeName = userName;
             model.EntryTime = DateTime.UtcNow;
             model.ExitTime = null;
 
             _context.Attendances.Add(model);
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Entry marked", data = model });
+            return Ok(new
+            {
+                message = "Entry marked",
+                userType = userType,
+                data = model
+            });
         }
 
         [HttpPost("exit")]
@@ -41,6 +64,11 @@ namespace AttendanceAPI.Controllers
         {
             if (string.IsNullOrEmpty(model.Email) || string.IsNullOrEmpty(model.Password))
                 return BadRequest("Email and Password are required.");
+
+            // Validate credentials against both Users and Managers tables
+            var (isValid, userType, userName) = await ValidateUserCredentials(model.Email, model.Password);
+            if (!isValid)
+                return Unauthorized("Invalid credentials.");
 
             var record = await _context.Attendances
                 .Where(a => a.Email == model.Email && a.ExitTime == null)
@@ -58,6 +86,7 @@ namespace AttendanceAPI.Controllers
             return Ok(new
             {
                 message = "Exit marked",
+                userType = userType,
                 entryTime = record.EntryTime,
                 exitTime = record.ExitTime,
                 duration = duration.ToString(@"hh\:mm\:ss")
@@ -112,6 +141,54 @@ namespace AttendanceAPI.Controllers
                 records,
                 presentDays,
                 totalHoursWorked = Math.Round(totalHoursWorked, 2)
+            });
+        }
+
+        // NEW ENDPOINT: Get all employees and managers for manager dashboard
+        [HttpGet("all-users")]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var employees = await _context.Users
+                .Select(u => new {
+                    Email = u.Email,
+                    Name = u.Name,
+                    Role = "Employee"
+                })
+                .ToListAsync();
+
+            var managers = await _context.Managers
+                .Select(m => new {
+                    Email = m.Email,
+                    Name = m.Name,
+                    Role = "Manager"
+                })
+                .ToListAsync();
+
+            var allUsers = employees.Concat(managers).ToList();
+
+            return Ok(allUsers);
+        }
+
+        // NEW ENDPOINT: Check user type for login redirection
+        [HttpPost("check-user-type")]
+        public async Task<IActionResult> CheckUserType([FromBody] dynamic loginData)
+        {
+            string email = loginData.Email;
+            string password = loginData.Password;
+
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+                return BadRequest("Email and Password are required.");
+
+            var (isValid, userType, userName) = await ValidateUserCredentials(email, password);
+
+            if (!isValid)
+                return Unauthorized("Invalid credentials.");
+
+            return Ok(new
+            {
+                userType = userType,
+                name = userName,
+                email = email
             });
         }
     }
