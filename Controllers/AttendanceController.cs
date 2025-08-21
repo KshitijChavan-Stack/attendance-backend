@@ -171,25 +171,43 @@ namespace AttendanceAPI.Controllers
 
         // NEW ENDPOINT: Check user type for login redirection
         [HttpPost("check-user-type")]
-        public async Task<IActionResult> CheckUserType([FromBody] dynamic loginData)
+        public async Task<IActionResult> CheckUserType([FromBody] Attendance model)
         {
-            string email = loginData.Email;
-            string password = loginData.Password;
-
-            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+            if (string.IsNullOrEmpty(model.Email) || string.IsNullOrEmpty(model.Password))
                 return BadRequest("Email and Password are required.");
 
-            var (isValid, userType, userName) = await ValidateUserCredentials(email, password);
-
-            if (!isValid)
-                return Unauthorized("Invalid credentials.");
-
-            return Ok(new
+            try
             {
-                userType = userType,
-                name = userName,
-                email = email
-            });
+                // Check if user exists in Users table
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == model.Email && u.Password == model.Password);
+                if (user != null)
+                {
+                    return Ok(new
+                    {
+                        userType = "employee",
+                        name = user.Name,
+                        email = user.Email
+                    });
+                }
+
+                // Check if user exists in Managers table
+                var manager = await _context.Managers.FirstOrDefaultAsync(m => m.Email == model.Email && m.Password == model.Password);
+                if (manager != null)
+                {
+                    return Ok(new
+                    {
+                        userType = "manager",
+                        name = manager.Name,
+                        email = manager.Email
+                    });
+                }
+
+                return Unauthorized("Invalid credentials.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
     }
 }
