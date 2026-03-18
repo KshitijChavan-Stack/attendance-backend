@@ -25,7 +25,7 @@ builder.Services.AddCors(options =>
 // Parse DATABASE_URL from Render environment variable
 var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 
-if (string.IsNullOrWhiteSpace(databaseUrl) || !databaseUrl.StartsWith("postgres://"))
+if (string.IsNullOrWhiteSpace(databaseUrl) || (!databaseUrl.StartsWith("postgres://") && !databaseUrl.StartsWith("postgresql://")))
     throw new Exception("Invalid or missing DATABASE_URL");
 
 var uri = new Uri(databaseUrl);
