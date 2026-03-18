@@ -30,8 +30,8 @@ if (string.IsNullOrWhiteSpace(databaseUrl) || !databaseUrl.StartsWith("postgres:
 
 var uri = new Uri(databaseUrl);
 var userInfo = uri.UserInfo.Split(':');
-var connectionString = $"Host={uri.Host};Port={uri.Port};Username={userInfo[0]};Password={userInfo[1]};Database={uri.AbsolutePath.TrimStart('/')};SSL Mode=Require;Trust Server Certificate=true";
-
+var port = uri.Port == -1 ? 5432 : uri.Port;
+var connectionString = $"Host={uri.Host};Port={port};Username={userInfo[0]};Password={userInfo[1]};Database={uri.AbsolutePath.TrimStart('/')};SSL Mode=Require;Trust Server Certificate=true";
 // Register DbContext
 builder.Services.AddDbContext<AttendanceDbContext>(options =>
     options.UseNpgsql(connectionString));
